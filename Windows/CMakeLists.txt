@@ -1,0 +1,6 @@
+if(WIN32)
+    project(WindowsApp C)
+    add_executable(windows_app win_main.c)
+else()
+    message(STATUS "Skipping")
+endif()

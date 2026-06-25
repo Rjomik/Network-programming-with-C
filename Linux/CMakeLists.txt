@@ -1,0 +1,6 @@
+if(UNIX AND NOT APPLE)
+    project(LinuxApp C)
+    add_executable(linux_app lin_main.c)
+else()
+    message(STATUS "Skipping")
+endif()
