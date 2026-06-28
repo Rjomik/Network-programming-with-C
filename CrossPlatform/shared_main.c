@@ -136,8 +136,10 @@ int main()
 	//terminating
 	printf("Closing client socket...\n");
 	CLOSESOCKET(clientSocket);
-	printf("Sending listening socket...\n");
+	printf("Closing listening socket...\n");
 	CLOSESOCKET(serverSocket);
+
+	printf("\nDone, bye!\n");
 
 #if defined(_WIN32)
 	WSACleanup();
