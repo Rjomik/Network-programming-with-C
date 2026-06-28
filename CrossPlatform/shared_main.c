@@ -10,7 +10,19 @@
 	#define CLOSESOCKET(x) (closesocket(x))
 	#define GETERRORCODE (WSAGetLastError())
 #else
+	#define _GNU_SOURCE
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <netdb.h>
+	#include <unistd.h>
+	#include <errno.h>
 
+	#define ISVALIDSOCKET(x) ((x) > 0)
+	#define CLOSESOCKET(x) (close(x))
+	#define GETERRORCODE (errno)
+	#define SOCKET int
 #endif
 #include <stdio.h>
 #include <string.h>
@@ -28,13 +40,13 @@ int main()
 #endif
 	//addr
 	printf("Configuring local address...\n");
-	ADDRINFOA hints;
+	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	ADDRINFOA* bindAddress;
+	struct addrinfo* bindAddress;
 	getaddrinfo(0, "8080", &hints, &bindAddress);
 
 	//socket
