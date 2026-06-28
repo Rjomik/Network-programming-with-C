@@ -42,7 +42,7 @@ int main()
 	printf("Configuring local address...\n");
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
+	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
@@ -57,6 +57,15 @@ int main()
 		fprintf(stderr, "Failed to create a socket. Code: %d\n", GETERRORCODE);
 		return -2;
 	}
+	//IPv4 + IPv6
+	printf("Disabling IPv6 only option...\n");
+	int opt = 0;
+	if (setsockopt(serverSocket, IPPROTO_IPV6, IPV6_V6ONLY, (void*) &opt, sizeof(opt)))
+	{
+		fprintf(stderr, "Failed to disable IPv6 only mode . Code: %d\n", GETERRORCODE);
+		return -9;
+	}
+
 	//bind
 	printf("Binding socket to local address...\n");
 	if (bind(serverSocket, bindAddress->ai_addr, bindAddress->ai_addrlen))
@@ -80,7 +89,7 @@ int main()
 	if (!ISVALIDSOCKET(clientSocket))
 	{
 		fprintf(stderr, "Failed to initiate connection. Code: %d\n", GETERRORCODE);
-		return -4;
+		return -8;
 	}
 	
 	//print client to console
