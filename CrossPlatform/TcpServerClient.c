@@ -1,6 +1,10 @@
 #include "TcpServerClient.h"
 int dummyClient()
 {
+#if defined(_WIN32)
+    WSADATA d;
+    WSAStartup(MAKEWORD(2, 2), &d);
+#endif
     printf("Enter host name or IP to connect to\n");
     char hostName[50];
     fgets(hostName, sizeof(hostName), stdin);
@@ -38,12 +42,21 @@ int dummyClient()
     fd_set setMaster;
     FD_ZERO(&setMaster);
     FD_SET(sock, &setMaster);
+#if !defined(_WIN32)
     FD_SET(fileno(stdin), &setMaster);
+#endif
     while(1)
     {
         fd_set copy = setMaster;
-        select(largest + 1, &copy, 0, 0, 0);
-        if(FD_ISSET(fileno(stdin), &copy))
+        struct timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        select(largest + 1, &copy, 0, 0, &tv);
+#if defined(_WIN32)
+        if(_kbhit())
+#else
+        if (FD_ISSET(fileno(stdin), &copy))
+#endif
         {
             char consoleInput[1024];
             fgets(consoleInput, sizeof(consoleInput), stdin);
@@ -54,13 +67,20 @@ int dummyClient()
         if(FD_ISSET(sock, &copy))
         {
             char recvBuffer[4096];
-            ssize_t got = recv(sock, recvBuffer, sizeof(recvBuffer), 0);
-            if(got < 1)
+            int got = (int)recv(sock, recvBuffer, sizeof(recvBuffer), 0);
+            if (got < 1)
+            {
+                printf("Remote cosed\n");
                 break;
+            }
+                
             printf("Got a message:\n%.*s", (int)got, recvBuffer);
         }
     }
     printf("leaving...");
     CLOSESOCKET(sock);
+#if defined(_WIN32)
+    WSACleanup();
+#endif
     return 0;
 }
