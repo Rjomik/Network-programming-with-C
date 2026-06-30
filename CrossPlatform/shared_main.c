@@ -27,9 +27,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "TcpServerClient.h"
 
 int main()
 {
+	dummyClient();
+	return 0;
 #if defined(_WIN32)
 	WSADATA d;
 	if (WSAStartup(MAKEWORD(2, 2), &d))
