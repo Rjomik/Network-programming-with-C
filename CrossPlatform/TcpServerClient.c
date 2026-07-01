@@ -84,3 +84,81 @@ int dummyClient()
 #endif
     return 0;
 }
+
+int dummyServer(){
+    printf("Configuring server\n");
+    struct addrinfo hint;
+    memset(&hint, 0, sizeof(hint));
+    hint.ai_family = AF_INET;
+    hint.ai_flags = AI_PASSIVE;
+    hint.ai_socktype = SOCK_STREAM;
+    struct addrinfo* addr;
+    getaddrinfo(0, "8080", &hint, &addr);
+    printf("Creating socket\n");
+    SOCKET listenSocket = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+    if(listenSocket < 1)
+    {
+        printf("Failed to create server socket\n");
+        return -1;
+    }
+    printf("Binding to port\n");
+    if(bind(listenSocket, addr->ai_addr, addr->ai_addrlen)!=0)
+    {
+        printf("Failed to bind to a port\n");
+        return -2;
+    }
+    printf("Listening...\n");
+    if(listen(listenSocket, 10)!=0)
+    {
+        printf("Failed to enter a listen state\n");
+        return -3;
+    }
+    fd_set master;
+    FD_ZERO(&master);
+    FD_SET(listenSocket, &master);
+    int maxSocket = listenSocket;
+    printf("Waiting for connections and messages\n");
+    while(1){
+        fd_set copy = master;
+        select(maxSocket+1, &copy, 0, 0, 0);
+        for(int i=0;i<=maxSocket;++i)
+        {
+            if(FD_ISSET(i, &copy)){
+                if(i == listenSocket){
+                    printf("Got a client\n");
+                    struct sockaddr_storage clientAddr;
+                    socklen_t clientLen = sizeof(clientAddr);
+                    SOCKET clientSock = accept(listenSocket, (struct sockaddr*) &clientAddr, &clientLen);
+                    if(clientSock < 1){
+                        printf("Client closed socket\n");
+                        continue;
+                    }
+                    char host[256], port[256];
+                    getnameinfo((struct sockaddr*)&clientAddr, clientLen, host, sizeof(host), port, sizeof(port), NI_NUMERICHOST | NI_NUMERICSERV);
+                    printf("Client endpoint: %s:%s\n", host, port);
+                    if(clientSock > maxSocket)
+                        maxSocket = clientSock;
+                    FD_SET(clientSock, &master);
+                }
+                else{
+                    char recvBuff[4096];
+                    int got = (int)recv(i, recvBuff, sizeof(recvBuff), 0);
+                    if(got > 0){
+                        printf("Server got a message:\n%.*s", got, recvBuff);
+                        printf("Broadcasting...\n");
+                        for(int j=0;j<=maxSocket;j++){
+                            if(j!=i && j!= listenSocket){
+                                send(j, &recvBuff, got, 0);
+                            }
+                        }
+                    }
+                    else{
+                        FD_CLR(i, &master);
+                    }
+                }
+            }
+        }
+    }
+    
+
+}

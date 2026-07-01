@@ -29,9 +29,12 @@
 #include <time.h>
 #include "TcpServerClient.h"
 
-int main()
+int main(int argc, char** args)
 {
-	dummyClient();
+	if(args[1][0] == 'c')
+		dummyClient();
+	else
+		dummyServer();
 	return 0;
 #if defined(_WIN32)
 	WSADATA d;

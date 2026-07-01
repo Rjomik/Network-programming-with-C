@@ -21,3 +21,4 @@
 #include <string.h>
 
 int dummyClient();
+int dummyServer();
