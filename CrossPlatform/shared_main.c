@@ -28,13 +28,30 @@
 #include <string.h>
 #include <time.h>
 #include "TcpServerClient.h"
+#include "menu.h"
+#include "UdpToUpperServerClient.h"
 
 int main(int argc, char** args)
 {
-	if(args[1][0] == 'c')
+	int menu = PrintMenu();
+	switch (menu)
+	{
+	case 2:
 		dummyClient();
-	else
+		break;
+	case 3:
 		dummyServer();
+		break;
+	case 4:
+		UdpToUpperServer();
+		break;
+	case 5:
+		UdpClient();
+		break;
+	default:
+		break;
+	}
+		
 	return 0;
 #if defined(_WIN32)
 	WSADATA d;
